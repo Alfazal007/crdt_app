@@ -1,9 +1,9 @@
 import { DocHandle, isValidAutomergeUrl, Repo } from '@automerge/automerge-repo';
 import './App.css'
 import { Editor } from './Editor'
-import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import { RepoContext } from '@automerge/automerge-repo-react-hooks';
 import { useEffect, useState } from 'react';
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket"
 
 export type EditorType = {
     data: string
@@ -11,10 +11,12 @@ export type EditorType = {
 
 function App() {
     const [handle, setHandle] = useState<DocHandle<EditorType>>()
-    //   const network = new BrowserWebSocketClientAdapter("ws://localhost:8000");
+    const network = new BrowserWebSocketClientAdapter("ws://localhost:3000");
+
     const repo = new Repo({
-        network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+        network: [network],
     })
+
     let rootDocUrl = document.location.hash.substring(1)
 
     useEffect(() => {
@@ -26,6 +28,7 @@ function App() {
                 data: ""
             })
         }
+        console.log({ handle })
         setHandle(handle)
     }, [])
 
