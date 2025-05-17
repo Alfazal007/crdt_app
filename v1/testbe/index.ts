@@ -16,7 +16,7 @@ const defaultSharePolicy = async (peerId: PeerId, documentId?: DocumentId): Prom
     return false;
 };
 
-const serverRepo = new Repo({ ...config1, sharePolicy: defaultSharePolicy })
+const serverRepo = new Repo({ ...config1, sharePolicy: async () => false })
 serverRepo.networkSubsystem.addNetworkAdapter(serverAdaptor)
 
 /*

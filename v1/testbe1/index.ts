@@ -25,3 +25,6 @@ serverRepo.on("document", (d) => {
     console.log({ d })
 })
 
+serverAdaptor.on("peer-candidate", (d) => {
+    console.log(d.peerId)
+})
