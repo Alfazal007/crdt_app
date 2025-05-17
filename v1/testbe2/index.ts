@@ -18,7 +18,7 @@ setTimeout(() => {
     console.log("Connecting other server")
     const peerAdapter = new BrowserWebSocketClientAdapter(`ws://localhost:3000`)
     serverRepo.networkSubsystem.addNetworkAdapter(peerAdapter)
-}, 10000)
+}, 30000)
 
 serverRepo.on("document", (d) => {
     console.log("New document")

@@ -11,7 +11,7 @@ export type EditorType = {
 
 function App() {
     const [handle, setHandle] = useState<DocHandle<EditorType>>()
-    const network = new BrowserWebSocketClientAdapter("ws://localhost:3000");
+    const network = new BrowserWebSocketClientAdapter("ws://localhost:3001");
 
     const repo = new Repo({
         network: [network],
