@@ -1,0 +1,21 @@
+{
+  "name": "be",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^5.0.2",
+    "@types/ws": "^8.18.1",
+    "express": "^5.1.0",
+    "ws": "^8.18.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@automerge/automerge-repo-network-websocket": "^2.0.0",
+    "@automerge/automerge-repo-storage-nodefs": "^2.0.0",
+    "automerge-repo": "^0.1.0"
+  }
+}
