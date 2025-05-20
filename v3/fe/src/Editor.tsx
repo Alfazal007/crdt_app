@@ -2,6 +2,7 @@ import { type AutomergeUrl } from "@automerge/automerge-repo"
 import { useDocument } from "@automerge/automerge-repo-react-hooks"
 import type { EditorType } from "./App"
 import { useState } from "react"
+import { next as Automerge } from "@automerge/automerge"
 
 function Editor({ docUrl }: { docUrl: AutomergeUrl }) {
     const [doc, changeDoc] = useDocument<EditorType>(docUrl)
@@ -21,19 +22,27 @@ function Editor({ docUrl }: { docUrl: AutomergeUrl }) {
             d.paragraphs.forEach((para) => {
                 console.log(para)
             })
+        })
+    }
 
-            /*
-            Automerge.mark(d, ["paragraphs", 0], {
+    function addMark() {
+        changeDoc(d => {
+            // IMP:: Here end index out of bound will throw error remember
+            Automerge.mark(d, ["paragraphs", d.paragraphs.length - 1], {
                 expand: 'both',
                 start: 0,
-                end: 4,
+                end: 2,
             }, "bold", true)
-            const marks = Automerge.marks(d, ["paragraphs", 0])
-            console.log(d.paragraphs[0])
-            console.log(marks);
-            */
-
         })
+    }
+
+    function displayMark() {
+        if (doc && doc.paragraphs) {
+            for (let i = 0; i < doc.paragraphs.length; i++) {
+                const marks = Automerge.marks(doc, ["paragraphs", i])
+                console.log(marks);
+            }
+        }
     }
 
     if (!doc || !changeDoc) {
@@ -53,7 +62,10 @@ function Editor({ docUrl }: { docUrl: AutomergeUrl }) {
                     onChange={handleInputChange}
                 />
             </div>
-        </div>
+
+            <button onClick={addMark}>Add mark</button>
+            <button onClick={displayMark}>Display mark</button>
+        </div >
     )
 }
 
