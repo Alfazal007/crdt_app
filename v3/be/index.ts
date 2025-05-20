@@ -3,7 +3,6 @@ import { WebSocketServer } from "ws"
 import { WebSocketServerAdapter } from "@automerge/automerge-repo-network-websocket"
 import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs"
 import { Repo } from "@automerge/automerge-repo"
-import { next as Automerge } from "@automerge/automerge";
 
 const wsServer = new WebSocketServer({ noServer: true })
 const config = {

@@ -1,0 +1,23 @@
+{
+  "name": "be2",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/ws": "^8.18.1",
+    "express": "^5.1.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@automerge/automerge-repo": "^2.0.0",
+    "@automerge/automerge-repo-network-websocket": "^2.0.0",
+    "@automerge/automerge-repo-storage-nodefs": "^2.0.0",
+    "axios": "^1.9.0",
+    "cors": "^2.8.5"
+  }
+}
