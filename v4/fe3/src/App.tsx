@@ -12,7 +12,7 @@ export type EditorType = {
 
 function App() {
     const [handle, setHandle] = useState<DocHandle<EditorType>>()
-    const network = new BrowserWebSocketClientAdapter("ws://localhost:3000");
+    const network = new BrowserWebSocketClientAdapter("ws://localhost:3002");
 
     const repo = new Repo({
         network: [network],
@@ -21,12 +21,13 @@ function App() {
     let rootDocUrl = document.location.hash.substring(1)
 
     async function sendData() {
-        await axios.post("http://localhost:3000/something", {
+        await axios.post("http://localhost:3002/something", {
             documentId: document.location.hash.split(":")[1],
             peerId: "",
             type: "client"
         })
     }
+
     if (rootDocUrl) {
         console.log(document.location.hash)
         sendData()
