@@ -76,7 +76,8 @@ async function signInHandler(req: Request, res: Response) {
         secure: true,
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     }).json({
-        token
+        token,
+        userId: userExistsResult.data.id
     })
     return
 }
