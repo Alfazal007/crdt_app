@@ -1,0 +1,21 @@
+{
+  "name": "automergebackend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/axios": "^0.14.4",
+    "@types/bun": "latest",
+    "@types/ws": "^8.18.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@automerge/automerge-repo": "^2.0.0",
+    "@automerge/automerge-repo-storage-nodefs": "^2.0.0",
+    "automerge-repo": "^0.1.0",
+    "axios": "^1.9.0",
+    "ws": "^8.18.2"
+  }
+}
