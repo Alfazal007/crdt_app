@@ -1,4 +1,6 @@
 import { app } from "./app"
+import { configDotenv } from "dotenv"
+configDotenv()
 
 const PORT = 8000
 
