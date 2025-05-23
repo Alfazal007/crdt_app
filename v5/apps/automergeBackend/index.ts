@@ -3,6 +3,7 @@ import { WebSocketServer } from "ws"
 import { Repo } from "@automerge/automerge-repo"
 import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs"
 import { RedisManager } from "./helpers/redis"
+import { WebSocketServerAdapter } from "@automerge/automerge-repo-network-websocket"
 
 const wsServer = new WebSocketServer({ noServer: true })
 const config = {
@@ -13,9 +14,13 @@ const config = {
 const PORT = 8001
 const serverRepo = new Repo({
     ...config, sharePolicy: async () => {
-        return false
+        return true
     }
 })
+
+// @ts-ignore
+const serverAdaptor = new WebSocketServerAdapter(wsServer)
+serverRepo.networkSubsystem.addNetworkAdapter(serverAdaptor)
 
 const app = express()
 
@@ -39,7 +44,11 @@ server.on("upgrade", async (request, socket, head) => {
         return
     }
     wsServer.handleUpgrade(request, socket, head, (socket) => {
+        console.log("upgrading socket connection")
         wsServer.emit("connection", socket, request)
     })
 })
 
+serverRepo.on("document", (d) => {
+    console.log({ d })
+})
