@@ -6,11 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { z } from "zod"
 import { signUpTypes } from "@repo/zodtypes"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import axios from "axios"
+import { toast } from "sonner"
 
 type SignUpFormData = z.infer<typeof signUpTypes>
 
 export default function SignupPage() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState<SignUpFormData>({
         username: "",
         password: "",
@@ -36,13 +39,21 @@ export default function SignupPage() {
         e.preventDefault();
         setIsLoading(true);
         setErrors({});
-
         try {
-            const validatedData = signUpTypes.parse(formData);
-            console.log("Sign up data:", validatedData);
-            // TODO:: Make a axios request
-            alert("Account created successfully!");
-        } catch (error) {
+            const responseSignup = await axios.post("http://localhost:8000/api/v1/auth/signup", {
+                username: formData.username,
+                password: formData.password
+            })
+            if (responseSignup.status != 201) {
+                const errors = responseSignup.data.errors.join("\n")
+                toast(errors)
+                return
+            } else {
+                toast("successfully created the account")
+                navigate('/signin')
+                return
+            }
+        } catch (error: any) {
             if (error instanceof z.ZodError) {
                 const fieldErrors: Partial<Record<keyof SignUpFormData, string>> = {};
                 error.errors.forEach((err) => {
@@ -53,10 +64,15 @@ export default function SignupPage() {
                 });
                 setErrors(fieldErrors);
             } else {
-                console.error("Unexpected error:", error);
+                const errors = error.response.data.errors.join("\n")
+                toast(errors)
             }
         } finally {
             setIsLoading(false);
+            setFormData({
+                password: "",
+                username: ""
+            })
         }
     };
 
