@@ -19,6 +19,7 @@
     "@automerge/automerge-repo-storage-nodefs": "^2.0.0",
     "automerge-repo": "^0.1.0",
     "axios": "^1.9.0",
-    "ws": "^8.18.2"
+    "ws": "^8.18.2",
+    "@repo/database": "*"
   }
 }

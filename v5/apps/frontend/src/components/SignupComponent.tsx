@@ -13,7 +13,7 @@ import { toast } from "sonner"
 type SignUpFormData = z.infer<typeof signUpTypes>
 
 export default function SignupPage() {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
     const [formData, setFormData] = useState<SignUpFormData>({
         username: "",
         password: "",
@@ -36,9 +36,9 @@ export default function SignupPage() {
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setErrors({});
+        e.preventDefault()
+        setIsLoading(true)
+        setErrors({})
         try {
             const responseSignup = await axios.post("http://localhost:8000/api/v1/auth/signup", {
                 username: formData.username,
@@ -55,26 +55,26 @@ export default function SignupPage() {
             }
         } catch (error: any) {
             if (error instanceof z.ZodError) {
-                const fieldErrors: Partial<Record<keyof SignUpFormData, string>> = {};
+                const fieldErrors: Partial<Record<keyof SignUpFormData, string>> = {}
                 error.errors.forEach((err) => {
-                    const fieldName = err.path[0] as keyof SignUpFormData;
+                    const fieldName = err.path[0] as keyof SignUpFormData
                     if (typeof fieldName === "string") {
-                        fieldErrors[fieldName] = err.message;
+                        fieldErrors[fieldName] = err.message
                     }
-                });
-                setErrors(fieldErrors);
+                })
+                setErrors(fieldErrors)
             } else {
                 const errors = error.response.data.errors.join("\n")
                 toast(errors)
             }
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
             setFormData({
                 password: "",
                 username: ""
             })
         }
-    };
+    }
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">

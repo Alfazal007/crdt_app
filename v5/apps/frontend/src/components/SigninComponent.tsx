@@ -1,16 +1,25 @@
 import type React from "react"
-import { useState } from "react"
+import { useContext, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { z } from "zod"
 import { signInTypes } from "@repo/zodtypes"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import axios from "axios"
+import { toast } from "sonner"
+import { UserContext } from "@/context/UserContext"
 
 type SignInFormData = z.infer<typeof signInTypes>
 
 export default function SigninPage() {
+    const userContext = useContext(UserContext)
+    if (!userContext) {
+        return
+    }
+    const { setUser } = userContext
+    const navigate = useNavigate()
     const [formData, setFormData] = useState<SignInFormData>({
         username: "",
         password: "",
@@ -34,31 +43,51 @@ export default function SigninPage() {
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setErrors({});
+        e.preventDefault()
+        setIsLoading(true)
+        setErrors({})
         try {
-            const validatedData = signInTypes.parse(formData);
-            console.log("Sign up data:", validatedData);
-            // TODO:: Make a axios request
-            alert("Account created successfully!");
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const fieldErrors: Partial<Record<keyof SignInFormData, string>> = {};
-                error.errors.forEach((err) => {
-                    const fieldName = err.path[0] as keyof SignInFormData;
-                    if (typeof fieldName === "string") {
-                        fieldErrors[fieldName] = err.message;
-                    }
-                });
-                setErrors(fieldErrors);
+            const responseSignin = await axios.post("http://localhost:8000/api/v1/auth/signin", {
+                username: formData.username,
+                password: formData.password
+            }, {
+                withCredentials: true
+            })
+            if (responseSignin.status != 200) {
+                const errors = responseSignin.data.errors.join("\n")
+                toast(errors)
+                return
             } else {
-                console.error("Unexpected error:", error);
+                toast("successfully created the account")
+                setUser({
+                    accessToken: responseSignin.data.token,
+                    id: responseSignin.data.userId
+                })
+                navigate('/dashboard')
+                return
+            }
+        } catch (error: any) {
+            if (error instanceof z.ZodError) {
+                const fieldErrors: Partial<Record<keyof SignInFormData, string>> = {}
+                error.errors.forEach((err) => {
+                    const fieldName = err.path[0] as keyof SignInFormData
+                    if (typeof fieldName === "string") {
+                        fieldErrors[fieldName] = err.message
+                    }
+                })
+                setErrors(fieldErrors)
+            } else {
+                const errors = error.response.data.errors.join("\n")
+                toast(errors)
             }
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
+            setFormData({
+                password: "",
+                username: ""
+            })
         }
-    };
+    }
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">

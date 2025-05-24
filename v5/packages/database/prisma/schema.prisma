@@ -9,9 +9,32 @@ datasource db {
 }
 
 model User {
-  id       Int    @default(autoincrement())
-  username String @unique
-  password String
+  id        Int        @id @default(autoincrement())
+  username  String     @unique
+  password  String
+  documents Document[]
+
+  access Access[]
 
   @@index([username])
+}
+
+model Document {
+  id        String @id
+  creator   User   @relation(fields: [creatorId], references: [id])
+  creatorId Int
+
+  access Access[]
+
+  @@index([id])
+}
+
+model Access {
+  creatorId  Int
+  creator    User     @relation(fields: [creatorId], references: [id])
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@id([creatorId, documentId])
+  @@index([creatorId, documentId])
 }

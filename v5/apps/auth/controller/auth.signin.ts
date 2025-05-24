@@ -72,8 +72,9 @@ async function signInHandler(req: Request, res: Response) {
     }
     res.status(200).cookie("accessToken", token, {
         httpOnly: true,
-        path: "/",
         secure: true,
+        sameSite: "none",
+        path: "/",
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     }).json({
         token,
