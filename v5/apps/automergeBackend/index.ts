@@ -8,6 +8,7 @@ import { tryCatch } from "./tryCatch"
 import { prisma } from "@repo/database"
 import { WebSocketManager } from "./managers/WebSocketManager"
 import { DocumentManager } from "./managers/DocumentManager"
+import cors from "cors"
 
 type EditorType = {
     paragraphs: string[]
@@ -31,6 +32,13 @@ const serverAdaptor = new WebSocketServerAdapter(wsServer)
 serverRepo.networkSubsystem.addNetworkAdapter(serverAdaptor)
 
 const app = express()
+
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:5173',
+}))
+
+app.use(express.json())
 
 app.post("/createDocument", async (req, res) => {
     if (!req.body) {

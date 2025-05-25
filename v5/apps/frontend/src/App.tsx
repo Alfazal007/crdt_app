@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import LandingPage from './components/Landing';
 import UserProvider from './context/UserContext';
 import Dashboard from './components/dashboard';
+import Document from './components/document';
 
 function App() {
     return (
@@ -17,6 +18,7 @@ function App() {
                         <Route path="/signup" element={<SignupPage />} />
                         <Route path="/signin" element={<SigninPage />} />
                         <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/document" element={<Document />} />
                     </Routes>
                 </UserProvider>
                 <Toaster />

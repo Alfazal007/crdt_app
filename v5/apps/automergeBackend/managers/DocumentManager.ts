@@ -26,7 +26,8 @@ export class DocumentManager {
             return
         }
         docIds.forEach((docId) => {
-            // TODO:: insert into database
+            // TODO:: insert into database the current state
         })
     }
 }
+
