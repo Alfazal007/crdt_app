@@ -9,6 +9,9 @@ import { prisma } from "@repo/database"
 import { WebSocketManager } from "./managers/WebSocketManager"
 import { DocumentManager } from "./managers/DocumentManager"
 import cors from "cors"
+import { configDotenv } from "dotenv"
+
+configDotenv()
 
 type EditorType = {
     paragraphs: string[]
