@@ -133,15 +133,20 @@ server.on("upgrade", async (request, socket, head) => {
         return
     }
 
-    wsServer.handleUpgrade(request, socket, head, (socket) => {
-        WebSocketManager.getInstance().addSocket(socket, token, parseInt(userId))
+    wsServer.handleUpgrade(request, socket, head, (ws) => {
+        WebSocketManager.getInstance().addSocket(ws, token, parseInt(userId))
         DocumentManager.getInstance().addUser(parseInt(userId))
-        socket.on("close", () => {
-            WebSocketManager.getInstance().removeSocket(socket)
+        ws.on("close", () => {
+            WebSocketManager.getInstance().removeSocket(ws)
+            DocumentManager.getInstance().removeUser(parseInt(userId))
+        })
+        ws.on("error", () => {
+            console.log("socket errored out")
+            WebSocketManager.getInstance().removeSocket(ws)
             DocumentManager.getInstance().removeUser(parseInt(userId))
         })
         console.log("upgrading socket connection")
-        wsServer.emit("connection", socket, request)
+        wsServer.emit("connection", ws, request)
     })
 })
 

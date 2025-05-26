@@ -1,23 +1,33 @@
 import fs from 'fs'
 import * as Automerge from '@automerge/automerge'
+import path from 'path'
 
 function dataToBeSavedToDatabase(documentId: string) {
     const firstDirectory = documentId.substring(0, 2)
-    const innerDirectory = documentId.substring(2, documentId.length)
-    const snapshotDir = `./automerge-repo-data/${firstDirectory}/${innerDirectory}/snapshot/`
-    const changesDir = `./automerge-repo-data/${firstDirectory}/${innerDirectory}/incremental`
+    const innerDirectory = documentId.substring(2)
+    const snapshotDir = path.join('./automerge-repo-data', firstDirectory, innerDirectory, 'snapshot')
+    const changesDir = path.join('./automerge-repo-data', firstDirectory, innerDirectory, 'incremental')
+
     const snapshotFiles = fs.readdirSync(snapshotDir)
     if (snapshotFiles.length !== 1) {
         throw new Error(`Expected exactly one snapshot file, found ${snapshotFiles.length}`)
     }
-    const snapshotPath = `${snapshotDir}/${snapshotFiles[0]}`
+
+    const snapshotPath = path.join(snapshotDir, snapshotFiles[0])
     const snapshot = new Uint8Array(fs.readFileSync(snapshotPath))
-    const changeFiles = fs.readdirSync(changesDir).sort()
-    const changes = changeFiles.map(file =>
-        new Uint8Array(fs.readFileSync(`${changesDir}/${file}`))
-    )
+
     let snapShotdoc = Automerge.load(snapshot)
-    const [doc,] = Automerge.applyChanges(snapShotdoc, changes)
+    let doc = snapShotdoc
+
+    if (fs.existsSync(changesDir)) {
+        const changeFiles = fs.readdirSync(changesDir).sort()
+        const changes = changeFiles.map(file =>
+            new Uint8Array(fs.readFileSync(path.join(changesDir, file)))
+        )
+        const [updatedDoc] = Automerge.applyChanges(snapShotdoc, changes)
+        doc = updatedDoc
+    }
+
     const toBeSavedToDatabase = Automerge.save(doc)
     return toBeSavedToDatabase
 }
@@ -25,4 +35,5 @@ function dataToBeSavedToDatabase(documentId: string) {
 export {
     dataToBeSavedToDatabase
 }
+
 

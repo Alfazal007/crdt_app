@@ -8,6 +8,7 @@ async function saveToDatabase(documentId: string) {
     while (!success) {
         success = await CloudinaryManager.getInstance().sendRawData(`data/${documentId}`, base64Document)
     }
+    console.log(`saved doc to the database ${documentId}`)
 }
 
 function uint8ArrayToBase64(uint8Array: Uint8Array): string {

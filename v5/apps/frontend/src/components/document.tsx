@@ -35,6 +35,22 @@ function Document() {
             network: [network],
         })
         setRepo(repo)
+
+        network.onClose = () => {
+            console.log("closing network")
+        }
+
+        return () => {
+            if (repo) {
+                console.log("network disconnecting")
+                const ws = network.socket
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    console.log('Closing WebSocket manually');
+                    ws.close();
+                }
+                repo.networkSubsystem.disconnect();
+            }
+        }
     }, [])
 
     let rootDocUrl = document.location.hash.substring(1)

@@ -1,3 +1,6 @@
+import { useRef } from "react"
+import { saveToDatabase } from "../helpers/databaseSaver"
+
 export class DocumentManager {
     private static instance: DocumentManager | null = null
     private docsToUser: Map<number, string[]>
@@ -13,11 +16,20 @@ export class DocumentManager {
     }
 
     addDocumentToUser(documentId: string, userId: number) {
+        if (!this.docsToUser.get(userId)) {
+            this.docsToUser.set(userId, [])
+        }
         this.docsToUser.get(userId)?.push(documentId)
+        console.log("addewd document")
+        console.log(this.docsToUser)
     }
 
     addUser(userId: number) {
-        this.docsToUser.set(userId, [])
+        if (!this.docsToUser.get(userId)) {
+            this.docsToUser.set(userId, [])
+        }
+        console.log("addewd user")
+        console.log(this.docsToUser)
     }
 
     removeUser(userId: number) {
@@ -25,9 +37,10 @@ export class DocumentManager {
         if (!docIds) {
             return
         }
-        docIds.forEach((docId) => {
-            // TODO:: insert into database the current state
+        docIds.forEach(async (docId) => {
+            await saveToDatabase(docId)
         })
+        this.docsToUser.delete(userId)
     }
 }
 
