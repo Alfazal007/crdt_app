@@ -46,6 +46,8 @@ function Editor({ docUrl }: { docUrl: AutomergeUrl }) {
     }
 
     if (!doc || !changeDoc) {
+        console.log({ doc })
+        console.log({ changeDoc })
         return null
     }
 

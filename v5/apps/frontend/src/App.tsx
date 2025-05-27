@@ -7,6 +7,7 @@ import LandingPage from './components/Landing';
 import UserProvider from './context/UserContext';
 import Dashboard from './components/dashboard';
 import Document from './components/document';
+import EditDocument from './components/editDocument';
 
 function App() {
     return (
@@ -19,6 +20,7 @@ function App() {
                         <Route path="/signin" element={<SigninPage />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/document" element={<Document />} />
+                        <Route path="/edit-document" element={<EditDocument />} />
                     </Routes>
                 </UserProvider>
                 <Toaster />

@@ -29,6 +29,32 @@ class CloudinaryManager {
         }
         return true
     }
+
+    async resourceExists(publicId: string): Promise<boolean> {
+        const resourceExists = await tryCatch(cloudinary.api.resource(publicId, {
+            resource_type: "raw"
+        }))
+        if (resourceExists.error) {
+            return false
+        }
+        if (!resourceExists.data.asset_id) {
+            return false
+        }
+        return true
+    }
+
+    async downloadAndConvertToUint8Array(publicId: string): Promise<[Uint8Array | null, boolean]> {
+        const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/${publicId}`;
+        const responseResult = await tryCatch(fetch(url))
+        if (responseResult.error) {
+            return [null, false]
+        }
+        if (!responseResult.data) {
+            return [null, false]
+        }
+        const arrayBuffer = await responseResult.data.arrayBuffer();
+        return [new Uint8Array(arrayBuffer), true]
+    }
 }
 
 export {

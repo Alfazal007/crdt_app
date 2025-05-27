@@ -1,6 +1,6 @@
 import express from "express"
 import { WebSocketServer } from "ws"
-import { Repo } from "@automerge/automerge-repo"
+import { Repo, type DocumentId } from "@automerge/automerge-repo"
 import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs"
 import { RedisManager } from "./helpers/redis"
 import { WebSocketServerAdapter } from "@automerge/automerge-repo-network-websocket"
@@ -10,6 +10,7 @@ import { WebSocketManager } from "./managers/WebSocketManager"
 import { DocumentManager } from "./managers/DocumentManager"
 import cors from "cors"
 import { configDotenv } from "dotenv"
+import { CloudinaryManager } from "./managers/CloudinaryManager"
 
 configDotenv()
 
@@ -112,6 +113,162 @@ app.post("/createDocument", async (req, res) => {
     })
     return
 })
+
+app.post("/editDocument", async (req, res) => {
+    if (!req.body) {
+        res.status(400).json({
+            errors: [
+                "Request body not found"
+            ]
+        })
+        return
+    }
+    const { token, userId, documentId } = req.body
+    if (!token || !userId || !documentId) {
+        res.status(400).json({
+            errors: [
+                "token and userId not found"
+            ]
+        })
+        return
+    }
+    const userIdInt = parseInt(userId)
+    if (!userIdInt) {
+        res.status(400).json({
+            errors: [
+                "invalid userId provided"
+            ]
+        })
+        return
+    }
+    const redisTokenValid = await RedisManager.getInstance().getValue(`auth:${userId}`, token)
+    if (!redisTokenValid) {
+        res.status(401).json({
+            errors: [
+                "relogin and try again"
+            ]
+        })
+        return
+    }
+    let fetchFromCloudinary = false
+    // check if the doc exists in the file if not check database authentications
+    const existsDocument = await tryCatch(serverRepo.find(documentId))
+    if (existsDocument.error || !existsDocument.data) {
+        // does not exist
+        const databaseExistingResult = await tryCatch(prisma.document.findFirst({
+            where: {
+                id: documentId
+            }
+        }))
+        if (databaseExistingResult.error) {
+            res.status(500).json({
+                errors: [
+                    "issue talking to the database"
+                ]
+            })
+            return
+        }
+        if (!databaseExistingResult.data) {
+            res.status(404).json({
+                errors: [
+                    "not found"
+                ]
+            })
+            return
+        }
+        if (databaseExistingResult.data.creatorId == userId) {
+            fetchFromCloudinary = true
+        }
+        if (!fetchFromCloudinary) {
+            // check access
+            const accessAllowedResult = await tryCatch(prisma.access.findFirst({
+                where: {
+                    documentId,
+                    creatorId: userId
+                }
+            }))
+            if (accessAllowedResult.error) {
+                res.status(500).json({
+                    errors: [
+                        "issue talking to the database"
+                    ]
+                })
+                return
+            }
+            if (!accessAllowedResult.data) {
+                res.status(401).json({
+                    errors: [
+                        "unauthorized"
+                    ]
+                })
+                return
+            }
+            fetchFromCloudinary = true
+        }
+        if (!fetchFromCloudinary) {
+            res.status(401).json({
+                errors: [
+                    "unauthorized"
+                ]
+            })
+            return
+        }
+        const dataExistsInCloudinary = await CloudinaryManager.getInstance().resourceExists(`data/${documentId}`)
+        if (!dataExistsInCloudinary) {
+            res.status(404).json({
+                errors: [
+                    "not found in cloudinary"
+                ]
+            })
+            return
+        }
+        const [cloudinaryUint8Data, found] = await CloudinaryManager.getInstance().downloadAndConvertToUint8Array(`data/${documentId}`)
+        if (!found || !cloudinaryUint8Data) {
+            res.status(404).json({
+                errors: [
+                    "not found in cloudinary"
+                ]
+            })
+            return
+        }
+        let docHandle = serverRepo.import(cloudinaryUint8Data)
+        await docHandle.whenReady()
+        res.status(200).json({
+            message: "imported successfully"
+        })
+        return
+    }
+    res.status(400).json({
+        errors: ["Issue importing the data"]
+    })
+    return
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const server = app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`)
