@@ -1,6 +1,6 @@
 import express from "express"
 import { WebSocketServer } from "ws"
-import { Repo, type DocumentId } from "@automerge/automerge-repo"
+import { Repo } from "@automerge/automerge-repo"
 import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs"
 import { RedisManager } from "./helpers/redis"
 import { WebSocketServerAdapter } from "@automerge/automerge-repo-network-websocket"
@@ -11,6 +11,8 @@ import { DocumentManager } from "./managers/DocumentManager"
 import cors from "cors"
 import { configDotenv } from "dotenv"
 import { CloudinaryManager } from "./managers/CloudinaryManager"
+import { Automerge } from "@automerge/automerge-repo/slim"
+import { dataToBeSavedToDatabase } from "./extractDataAutomerge"
 
 configDotenv()
 
@@ -35,6 +37,12 @@ const serverRepo = new Repo({
 const serverAdaptor = new WebSocketServerAdapter(wsServer)
 serverRepo.networkSubsystem.addNetworkAdapter(serverAdaptor)
 
+serverRepo.on("document", (doc) => {
+    doc.handle.on("change", (change) => {
+        console.log({ change })
+    })
+})
+
 const app = express()
 
 app.use(cors({
@@ -53,8 +61,8 @@ app.post("/createDocument", async (req, res) => {
         })
         return
     }
-    const { token, userId } = req.body
-    if (!token || !userId) {
+    const { token, userId, docName } = req.body
+    if (!token || !userId || !docName) {
         res.status(400).json({
             errors: [
                 "token and userId not found"
@@ -87,11 +95,10 @@ app.post("/createDocument", async (req, res) => {
 
     const documentIntoDatabase = await tryCatch(prisma.document.create({
         data: {
-            id: dochandle.documentId as string,
-            creatorId: userIdInt
+            creatorId: userIdInt,
+            nameOfDocument: docName
         }
     }))
-    DocumentManager.getInstance().addDocumentToUser(dochandle.documentId.toString(), userIdInt)
     if (documentIntoDatabase.error) {
         res.status(500).json({
             errors: [
@@ -108,6 +115,10 @@ app.post("/createDocument", async (req, res) => {
         })
         return
     }
+    DocumentManager.getInstance().addDocumentToUser(dochandle.documentId.toString(), userIdInt, documentIntoDatabase.data.id)
+    RedisManager.getInstance().setValue(`${documentIntoDatabase.data.id}`, "1")
+    // TODO:: add a new list into the redis pointing to this server
+    RedisManager.getInstance().setValue(`${documentIntoDatabase.data.id}`, "1")
     res.status(201).json({
         documentId: dochandle.documentId,
     })
@@ -141,6 +152,15 @@ app.post("/editDocument", async (req, res) => {
         })
         return
     }
+    const documentIdInt = parseInt(documentId)
+    if (!documentIdInt) {
+        res.status(400).json({
+            errors: [
+                "invalid documentId provided"
+            ]
+        })
+        return
+    }
     const redisTokenValid = await RedisManager.getInstance().getValue(`auth:${userId}`, token)
     if (!redisTokenValid) {
         res.status(401).json({
@@ -152,7 +172,11 @@ app.post("/editDocument", async (req, res) => {
     }
     let fetchFromCloudinary = false
     // check if the doc exists in the file if not check database authentications
-    const existsDocument = await tryCatch(serverRepo.find(documentId))
+
+    let docIdString = DocumentManager.getInstance().getDocId(documentIdInt)
+    console.log({ docIdString })
+    const existsDocument = await tryCatch(serverRepo.find(docIdString))
+    console.log({ existsDocument })
     if (existsDocument.error || !existsDocument.data) {
         // does not exist
         const databaseExistingResult = await tryCatch(prisma.document.findFirst({
@@ -231,17 +255,32 @@ app.post("/editDocument", async (req, res) => {
             })
             return
         }
+        let doc = Automerge.load(cloudinaryUint8Data)
+        console.log('Message from file:')
+        doc.paragraphs.forEach((para) => {
+            console.log(para.elems.join("") + "\n")
+        })
+        //const docHandle = serverRepo.create<EditorType>(doc)
         let docHandle = serverRepo.import(cloudinaryUint8Data)
+        console.log("id after updating")
+        console.log(docHandle.documentId)
+        docHandle.request()
         await docHandle.whenReady()
+        console.log("test1")
+        console.log(docHandle.isReady())
+        console.log("test2")
+        console.log("After ready")
+        //       DocumentManager.getInstance().addDocumentToUser(documentId, userIdInt, documentIdIntyes)
         res.status(200).json({
-            message: "imported successfully"
+            documentId: docHandle.documentId
+        })
+        return
+    } else {
+        res.status(200).json({
+            documentId: documentId
         })
         return
     }
-    res.status(400).json({
-        errors: ["Issue importing the data"]
-    })
-    return
 })
 
 
@@ -307,6 +346,18 @@ server.on("upgrade", async (request, socket, head) => {
     })
 })
 
-serverRepo.on("document", (d) => {
-    console.log({ d })
-})
+/*
+setInterval(async () => {
+    console.log('Current documents in repo:', Object.keys(serverRepo.handles))
+
+    Object.entries(serverRepo.handles).map(([docId, handle]) => {
+        if (handle) {
+            console.log("key id", docId)
+            console.log("Document id", handle.documentId)
+            console.log("Document ready?", handle.isReady())
+            console.log("Document state:", handle.state)
+        }
+    })
+}, 5000)
+*/
+

@@ -36,6 +36,20 @@ class RedisManager {
         }
         return true
     }
+
+    async setValue(key: string, value: string): Promise<boolean> {
+        if (!this.client) {
+            return false
+        }
+        if (!this.client.isOpen) {
+            await this.client.connect()
+        }
+        const redisResult = await tryCatch(this.client.set(key, value))
+        if (redisResult.error) {
+            return false
+        }
+        return true
+    }
 }
 
 export {

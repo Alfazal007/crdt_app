@@ -20,9 +20,10 @@ model User {
 }
 
 model Document {
-  id        String @id
+  id        Int        @id @default(autoincrement())
   creator   User   @relation(fields: [creatorId], references: [id])
   creatorId Int
+  nameOfDocument String @unique
 
   access Access[]
 
@@ -32,7 +33,7 @@ model Document {
 model Access {
   creatorId  Int
   creator    User     @relation(fields: [creatorId], references: [id])
-  documentId String
+  documentId Int
   document   Document @relation(fields: [documentId], references: [id])
 
   @@id([creatorId, documentId])

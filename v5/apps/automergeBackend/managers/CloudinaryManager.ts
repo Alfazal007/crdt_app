@@ -17,17 +17,30 @@ class CloudinaryManager {
         return this.instance
     }
 
-    async sendRawData(publicId: string, base64data: string): Promise<boolean> {
-        const dataUri = `data:application/octet-stream;base64,${base64data}`;
-        const response = await tryCatch(cloudinary.uploader.upload(dataUri, {
-            public_id: publicId,
-            resource_type: "raw",
-            invalidate: true
-        }))
-        if (response.error) {
+    async sendRawData(publicId: string, bytes: Uint8Array): Promise<boolean> {
+        const promiseToAwait = new Promise((resolve) => {
+            const uploadStream = cloudinary.uploader.upload_stream({
+                public_id: publicId,
+                resource_type: "raw",
+                invalidate: true
+            }, (error, result) => {
+                if (error || !result) {
+                    console.error("Cloudinary upload error:", error)
+                    return resolve(false)
+                }
+                resolve(true)
+            });
+            const buffer = Buffer.from(bytes);
+            uploadStream.end(buffer);
+        });
+        try {
+            await promiseToAwait
+            console.log("stored succesfully")
+            return true
+        } catch {
+            console.log("stored unsuccesful")
             return false
         }
-        return true
     }
 
     async resourceExists(publicId: string): Promise<boolean> {

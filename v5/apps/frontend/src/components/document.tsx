@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { Editor } from './editor';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '@/context/UserContext';
+import axios from 'axios';
 
 export type EditorType = {
     paragraphs: string[]
@@ -82,7 +83,15 @@ function Document() {
         return (
             <>
                 <Button onClick={() => { setClicked(true) }}> Click to load the document</Button>
-                <Button onClick={() => { navigate("/edit-document") }}> Edit document</Button>
+                <Button onClick={async () => {
+                    const responseFetchRepo = await axios.post(`http://localhost:8001/editDocument`, {
+                        token: userContext?.user.accessToken,
+                        userId: userContext?.user.id,
+                        documentId: 1
+                    })
+                    console.log({ responseFetchRepo })
+                    navigate(`/edit-document#automerge:${responseFetchRepo.data.documentId}`)
+                }}> Edit document</Button>
             </>
         )
     } else {
