@@ -64,7 +64,7 @@ const Dashboard = () => {
                 const responseFetchRepo = await axios.post(`http://localhost:8001/editDocument`, {
                     token: userContext?.user.accessToken,
                     userId: userContext?.user.id,
-                    documentId: 1
+                    documentId: 9
                 })
                 console.log({ responseFetchRepo })
                 navigate(`/edit-document#automerge:${responseFetchRepo.data.documentId}`)

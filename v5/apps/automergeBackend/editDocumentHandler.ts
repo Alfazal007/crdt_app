@@ -155,7 +155,7 @@ const editDocHandler = async (req: Request, res: Response) => {
         return
     } else {
         res.status(200).json({
-            documentId: documentId
+            documentId: docIdString
         })
         return
     }

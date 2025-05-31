@@ -1,3 +1,4 @@
+import type { DocumentId } from "automerge-repo";
 import { serverRepo } from "..";
 import { saveToDatabase } from "../helpers/databaseSaver"
 
@@ -43,7 +44,6 @@ export class DocumentManager {
         console.log("remove user called")
         let docIds = this.docsToUser.get(userId)
         if (!docIds) return
-
         for (const docId of docIds) {
             await saveToDatabase(docId, this.docsToDocId.get(docId) || -1)
             let prev = this.trackers.get(docId) || 0
@@ -53,14 +53,12 @@ export class DocumentManager {
                 this.docsToDocId.delete(docId)
                 console.log("removing tracking of document from the server")
                 console.log({ docIdBeingDeleted: docId })
-                serverRepo.delete(docId)
+                serverRepo.delete(docId as DocumentId)
             } else {
                 this.trackers.set(docId, next)
             }
         }
-
         this.docsToUser.delete(userId)
-
         console.log({ trackers: this.trackers })
         console.log({ docsToUsers: this.docsToUser })
         console.log({ docsToDocId: this.docsToDocId })

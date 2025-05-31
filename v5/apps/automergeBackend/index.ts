@@ -84,7 +84,6 @@ server.on("upgrade", async (request, socket, head) => {
 /*
 setInterval(async () => {
     console.log('Current documents in repo:', Object.keys(serverRepo.handles))
-
     Object.entries(serverRepo.handles).map(([docId, handle]) => {
         if (handle) {
             console.log("key id", docId)
