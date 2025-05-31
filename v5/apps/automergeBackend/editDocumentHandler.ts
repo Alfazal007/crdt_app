@@ -144,15 +144,11 @@ const editDocHandler = async (req: Request, res: Response) => {
         console.log({ doc })
         //const docHandle = serverRepo.create<EditorType>(doc)
         let docHandle = serverRepo.import(cloudinaryUint8Data)
-        console.log("id after updating")
-        console.log(docHandle.documentId)
         docHandle.request()
         await docHandle.whenReady()
-        console.log("test1")
-        console.log(docHandle.isReady())
-        console.log("test2")
         console.log("After ready")
-        //       DocumentManager.getInstance().addDocumentToUser(documentId, userIdInt, documentIdIntyes)
+        console.log("Adding to doc handle")
+        DocumentManager.getInstance().addDocumentToUser(docHandle.documentId, userIdInt, databaseExistingResult.data.id)
         res.status(200).json({
             documentId: docHandle.documentId
         })

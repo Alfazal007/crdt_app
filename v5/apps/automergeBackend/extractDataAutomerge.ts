@@ -3,6 +3,7 @@ import * as Automerge from '@automerge/automerge'
 import path from 'path'
 
 function dataToBeSavedToDatabase(documentId: string) {
+    console.log({ documentId })
     const firstDirectory = documentId.substring(0, 2)
     const innerDirectory = documentId.substring(2)
     const snapshotDir = path.join('./automerge-repo-data', firstDirectory, innerDirectory, 'snapshot')

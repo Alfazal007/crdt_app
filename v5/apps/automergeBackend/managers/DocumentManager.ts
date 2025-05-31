@@ -1,9 +1,10 @@
+import { serverRepo } from "..";
 import { saveToDatabase } from "../helpers/databaseSaver"
 
 export class DocumentManager {
     private static instance: DocumentManager | null = null
     private docsToUser: Map<number, string[]>
-    private docsToDocId: Map<string, number>
+    private docsToDocId: Map<string, number> // the docid in the handle pointing to the database docid
     private trackers: Map<string, number>;
 
     private constructor() {
@@ -20,18 +21,12 @@ export class DocumentManager {
     }
 
     addDocumentToUser(documentId: string, userId: number, databaseDocId: number) {
-        console.log("1")
         this.docsToDocId.set(documentId, databaseDocId)
-        console.log("2")
         if (!this.docsToUser.get(userId)) {
-            console.log("3")
             this.docsToUser.set(userId, [])
         }
-        console.log("4")
         this.docsToUser.get(userId)?.push(documentId)
-        console.log("5")
         let prev = this.trackers.get(documentId) || 0
-        console.log("6")
         this.trackers.set(documentId, 1 + prev)
         console.log("added document")
         console.log(this.docsToUser)
@@ -41,30 +36,34 @@ export class DocumentManager {
         if (!this.docsToUser.get(userId)) {
             this.docsToUser.set(userId, [])
         }
-        console.log("addewd user")
-        console.log(this.docsToUser)
+        console.log("added user")
     }
 
-    removeUser(userId: number) {
+    async removeUser(userId: number) {
+        console.log("remove user called")
         let docIds = this.docsToUser.get(userId)
-        if (!docIds) {
-            return
-        }
-        docIds.forEach(async (docId) => {
+        if (!docIds) return
+
+        for (const docId of docIds) {
             await saveToDatabase(docId, this.docsToDocId.get(docId) || -1)
             let prev = this.trackers.get(docId) || 0
-            this.trackers.set(docId, prev - 1)
-        })
-        this.docsToUser.delete(userId)
-        for (const key of this.trackers.keys()) {
-            if (this.trackers.get(key)) {
-                // @ts-ignore
-                if (this.trackers.get(key) < 1) {
-                    this.trackers.delete(key)
-                    this.docsToDocId.delete(key)
-                }
+            let next = prev - 1
+            if (next < 1) {
+                this.trackers.delete(docId)
+                this.docsToDocId.delete(docId)
+                console.log("removing tracking of document from the server")
+                console.log({ docIdBeingDeleted: docId })
+                serverRepo.delete(docId)
+            } else {
+                this.trackers.set(docId, next)
             }
         }
+
+        this.docsToUser.delete(userId)
+
+        console.log({ trackers: this.trackers })
+        console.log({ docsToUsers: this.docsToUser })
+        console.log({ docsToDocId: this.docsToDocId })
     }
 
     getDocId(docIdNum: number): string {

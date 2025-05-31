@@ -40,7 +40,6 @@ const Dashboard = () => {
                 userId,
                 docName
             })
-
             if (handleCreateDocResponse.status != 201) {
                 toast("Creation of document failed")
                 return
@@ -62,18 +61,13 @@ const Dashboard = () => {
             <Button onClick={handleCreateDoc}>Create a document</Button>
             <div> This is Dashboard page</div>
             <Button onClick={async () => {
-                console.log("clicked")
-                try {
-                    const responseFetchRepo = await axios.post(`http://localhost:8001/editDocument`, {
-                        token: userContext?.user.accessToken,
-                        userId: userContext?.user.id,
-                        documentId: "21XM6TNX1AkUwNxaTFy7NS2czZgG"
-                    })
-                    console.log({ responseFetchRepo })
-                    navigate(`/edit-document#automerge=${responseFetchRepo.data.documentId}`)
-                } catch (err) {
-                    console.log({ err })
-                }
+                const responseFetchRepo = await axios.post(`http://localhost:8001/editDocument`, {
+                    token: userContext?.user.accessToken,
+                    userId: userContext?.user.id,
+                    documentId: 1
+                })
+                console.log({ responseFetchRepo })
+                navigate(`/edit-document#automerge:${responseFetchRepo.data.documentId}`)
             }}> Edit document</Button>
         </>
     )

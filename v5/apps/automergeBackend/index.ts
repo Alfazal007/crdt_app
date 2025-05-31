@@ -34,12 +34,6 @@ export const serverRepo = new Repo({
 const serverAdaptor = new WebSocketServerAdapter(wsServer)
 serverRepo.networkSubsystem.addNetworkAdapter(serverAdaptor)
 
-serverRepo.on("document", (doc) => {
-    doc.handle.on("change", (change) => {
-        console.log({ change })
-    })
-})
-
 export const app = express()
 
 app.use(cors({
@@ -70,18 +64,17 @@ server.on("upgrade", async (request, socket, head) => {
         socket.destroy()
         return
     }
-
     wsServer.handleUpgrade(request, socket, head, (ws) => {
         WebSocketManager.getInstance().addSocket(ws, token, parseInt(userId))
         DocumentManager.getInstance().addUser(parseInt(userId))
-        ws.on("close", () => {
+        ws.on("close", async () => {
             WebSocketManager.getInstance().removeSocket(ws)
-            DocumentManager.getInstance().removeUser(parseInt(userId))
+            await DocumentManager.getInstance().removeUser(parseInt(userId))
         })
-        ws.on("error", () => {
+        ws.on("error", async () => {
             console.log("socket errored out")
             WebSocketManager.getInstance().removeSocket(ws)
-            DocumentManager.getInstance().removeUser(parseInt(userId))
+            await DocumentManager.getInstance().removeUser(parseInt(userId))
         })
         console.log("upgrading socket connection")
         wsServer.emit("connection", ws, request)
