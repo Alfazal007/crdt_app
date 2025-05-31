@@ -45,7 +45,7 @@ class CloudinaryManager {
 
     async resourceExists(publicId: string): Promise<boolean> {
         const resourceExists = await tryCatch(cloudinary.api.resource(publicId, {
-            resource_type: "raw"
+            resource_type: "raw",
         }))
         if (resourceExists.error) {
             return false
@@ -57,7 +57,7 @@ class CloudinaryManager {
     }
 
     async downloadAndConvertToUint8Array(publicId: string): Promise<[Uint8Array | null, boolean]> {
-        const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/${publicId}`;
+        const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/${publicId}?t=${Date.now()}`;
         const responseResult = await tryCatch(fetch(url))
         if (responseResult.error) {
             return [null, false]
